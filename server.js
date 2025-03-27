@@ -7,26 +7,31 @@ dotenv.config(); // Load environment variables
 
 const app = express();
 
-// ✅ Use CORS properly
-app.use(cors({ origin: "http://localhost:3000" }));
+// ✅ Allow CORS for frontend (Update with your Vercel URL when deployed)
+app.use(cors({ origin: ["http://localhost:3000"] }));
 app.use(express.json());
 
 // ✅ MongoDB Connection with Error Handling
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
     process.exit(1); // Stop server if MongoDB connection fails
   });
 
-// ✅ To-Do Model
+// ✅ To-Do Schema & Model
 const todoSchema = new mongoose.Schema({ text: { type: String, required: true } });
 const Todo = mongoose.model("Todo", todoSchema);
+
+// ✅ Root Route (Fixes "Cannot GET /" issue)
+app.get("/", (req, res) => {
+  res.send("🚀 API is running... Welcome to the MERN To-Do List Backend!");
+});
 
 // ✅ API Endpoints
 
 // 👉 Get all Todos
-app.get("/todos", async (req, res) => {
+app.get("/api/todos", async (req, res) => {
   try {
     const todos = await Todo.find();
     res.json(todos);
@@ -37,7 +42,7 @@ app.get("/todos", async (req, res) => {
 });
 
 // 👉 Add new Todo
-app.post("/todos", async (req, res) => {
+app.post("/api/todos", async (req, res) => {
   try {
     const { text } = req.body;
     if (!text) {
@@ -45,7 +50,7 @@ app.post("/todos", async (req, res) => {
     }
     const newTodo = new Todo({ text });
     await newTodo.save();
-    res.json(newTodo);
+    res.status(201).json(newTodo);
   } catch (error) {
     console.error("❌ Error adding todo:", error.message);
     res.status(500).json({ error: "Internal Server Error", details: error.message });
@@ -53,7 +58,7 @@ app.post("/todos", async (req, res) => {
 });
 
 // 👉 Delete Todo
-app.delete("/todos/:id", async (req, res) => {
+app.delete("/api/todos/:id", async (req, res) => {
   try {
     const deletedTodo = await Todo.findByIdAndDelete(req.params.id);
     if (!deletedTodo) {
