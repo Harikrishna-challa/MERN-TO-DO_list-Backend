@@ -7,12 +7,20 @@ dotenv.config(); // Load environment variables
 
 const app = express();
 
-// ✅ Allow CORS for frontend (Update with your deployed frontend URL)
-app.use(cors({ origin: ["http://localhost:3000", "https://your-frontend.vercel.app"] }));
+// ✅ Allowed Origins (Update with your frontend URL)
+const allowedOrigins = [
+  "http://localhost:3000", 
+  "https://frontend-itlk8imiy-challa-harikrishnas-projects.vercel.app/"  // 🔹 Replace with your actual deployed frontend URL
+];
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
 // ✅ MongoDB Connection with Error Handling
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
@@ -28,7 +36,7 @@ app.get("/", (req, res) => {
   res.send("🚀 API is running... Welcome to the MERN To-Do List Backend!");
 });
 
-// ✅ API Endpoints (Fixes 404 issue)
+// ✅ API Endpoints
 
 // 👉 Get all Todos
 app.get("/todos", async (req, res) => {
