@@ -7,12 +7,12 @@ dotenv.config(); // Load environment variables
 
 const app = express();
 
-// ✅ Allow CORS for frontend (Update with your Vercel URL when deployed)
-app.use(cors({ origin: ["http://localhost:3000"] }));
+// ✅ Allow CORS for frontend (Update with your deployed frontend URL)
+app.use(cors({ origin: ["http://localhost:3000", "https://your-frontend.vercel.app"] }));
 app.use(express.json());
 
 // ✅ MongoDB Connection with Error Handling
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
@@ -28,10 +28,10 @@ app.get("/", (req, res) => {
   res.send("🚀 API is running... Welcome to the MERN To-Do List Backend!");
 });
 
-// ✅ API Endpoints
+// ✅ API Endpoints (Fixes 404 issue)
 
 // 👉 Get all Todos
-app.get("/api/todos", async (req, res) => {
+app.get("/todos", async (req, res) => {
   try {
     const todos = await Todo.find();
     res.json(todos);
@@ -42,7 +42,7 @@ app.get("/api/todos", async (req, res) => {
 });
 
 // 👉 Add new Todo
-app.post("/api/todos", async (req, res) => {
+app.post("/todos", async (req, res) => {
   try {
     const { text } = req.body;
     if (!text) {
@@ -58,7 +58,7 @@ app.post("/api/todos", async (req, res) => {
 });
 
 // 👉 Delete Todo
-app.delete("/api/todos/:id", async (req, res) => {
+app.delete("/todos/:id", async (req, res) => {
   try {
     const deletedTodo = await Todo.findByIdAndDelete(req.params.id);
     if (!deletedTodo) {
