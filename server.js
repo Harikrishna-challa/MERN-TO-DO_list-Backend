@@ -7,14 +7,20 @@ dotenv.config(); // Load environment variables
 
 const app = express();
 
-// ✅ Allowed Origins (Update with your frontend URL)
+// ✅ CORS Configuration
 const allowedOrigins = [
   "http://localhost:3000", 
-  "https://frontend-itlk8imiy-challa-harikrishnas-projects.vercel.app/"  // 🔹 Replace with your actual deployed frontend URL
+  "https://mern-to-do-list-frontend.vercel.app"  // ✅ Corrected (Removed Trailing Slash)
 ];
 
-app.use(cors({ origin: allowedOrigins, credentials: true }));
-app.use(express.json());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true, 
+  methods: "GET,POST,DELETE",
+  allowedHeaders: "Content-Type,Authorization"
+}));
+
+app.use(express.json()); // ✅ Middleware to Parse JSON Requests
 
 // ✅ MongoDB Connection with Error Handling
 mongoose.connect(process.env.MONGO_URI, {
@@ -42,7 +48,7 @@ app.get("/", (req, res) => {
 app.get("/todos", async (req, res) => {
   try {
     const todos = await Todo.find();
-    res.json(todos);
+    res.status(200).json(todos);
   } catch (error) {
     console.error("❌ Error fetching todos:", error.message);
     res.status(500).json({ error: "Internal Server Error", details: error.message });
@@ -72,7 +78,7 @@ app.delete("/todos/:id", async (req, res) => {
     if (!deletedTodo) {
       return res.status(404).json({ error: "Todo not found" });
     }
-    res.json({ message: "Deleted successfully" });
+    res.status(200).json({ message: "Deleted successfully" });
   } catch (error) {
     console.error("❌ Error deleting todo:", error.message);
     res.status(500).json({ error: "Internal Server Error", details: error.message });
