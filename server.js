@@ -7,17 +7,24 @@ dotenv.config(); // Load environment variables
 
 const app = express();
 
-// ✅ CORS Configuration
+// ✅ CORS Configuration (More Flexible)
 const allowedOrigins = [
   "http://localhost:3000", 
-  "https://mern-to-do-list-frontend.vercel.app"  // ✅ Corrected (Removed Trailing Slash)
+  "http://localhost:5173",  // If using Vite (default port)
+  "https://mern-to-do-list-frontend.vercel.app"
 ];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS Not Allowed"));
+    }
+  },
   credentials: true, 
-  methods: "GET,POST,DELETE",
-  allowedHeaders: "Content-Type,Authorization"
+  methods: ["GET", "POST", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use(express.json()); // ✅ Middleware to Parse JSON Requests
@@ -83,6 +90,11 @@ app.delete("/todos/:id", async (req, res) => {
     console.error("❌ Error deleting todo:", error.message);
     res.status(500).json({ error: "Internal Server Error", details: error.message });
   }
+});
+
+// ✅ 404 Handler (Handles Undefined Routes)
+app.use((req, res) => {
+  res.status(404).json({ error: "Route Not Found" });
 });
 
 // ✅ Start Server
